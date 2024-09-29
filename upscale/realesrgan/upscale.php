@@ -1,5 +1,31 @@
 <?php
 
+// CUDAがインストールされているか確認
+$cudaCheck = shell_exec('nvcc --version');
+if (!$cudaCheck) {
+    echo "CUDAがインストールされていません。\n";
+    echo "CUDAをインストールするには、以下のコマンドを実行してください。\n";
+    echo "1. 必要な依存関係をインストール: sudo apt update && sudo apt install -y build-essential\n";
+    echo "2. CUDA Toolkitをダウンロード: wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run\n";
+    echo "3. CUDAをインストール: sudo sh cuda_11.8.0_520.61.05_linux.run --silent --toolkit\n";
+    echo "4. 環境変数を設定: echo 'export PATH=/usr/local/cuda/bin:\$PATH' >> ~/.bashrc\n";
+    echo "5. 環境変数を適用: source ~/.bashrc\n";
+    exit(1);
+} else {
+    echo "CUDAが正常にインストールされています。\n";
+}
+
+// FFmpegがインストールされているか確認
+$ffmpegCheck = shell_exec('ffmpeg -version');
+if (!$ffmpegCheck) {
+    echo "FFmpegがインストールされていません。\n";
+    echo "FFmpegをインストールするには、以下のコマンドを実行してください。\n";
+    echo "sudo apt update && sudo apt install -y ffmpeg\n";
+    exit(1);
+} else {
+    echo "FFmpegが正常にインストールされています。\n";
+}
+
 // コマンドライン引数から入力ファイルを取得
 if ($argc < 2) {
     echo "使用法: php script.php <input_video_file>\n";
@@ -78,7 +104,6 @@ foreach ($files as $index => $file) {
 echo "\n";
 
 // 生成されたPNGから動画を作成（音声なし）の高画質設定
-//$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -vf scale=3840:2160 -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
 $CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
 system($CMD);
 
