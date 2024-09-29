@@ -114,6 +114,30 @@ system($CMD);
 // 一時ファイルの削除
 @unlink("working_upscaled_none_audio.mp4");
 
-exit;
+// 出力された動画の情報を取得
+echo "出力された動画の情報:\n";
+$ffmpegInfo = shell_exec("ffmpeg -i {$output_movie_file_name} 2>&1");
 
-?>
+// 動画情報から必要な部分を抽出して整形
+if ($ffmpegInfo) {
+    // 動画の長さ (Duration) を抽出
+    preg_match('/Duration: ([\d:.]+)/', $ffmpegInfo, $durationMatch);
+    $duration = $durationMatch[1] ?? '不明';
+
+    // ビデオストリーム情報 (Video) を抽出
+    preg_match('/Stream.*Video: (.*)/', $ffmpegInfo, $videoStreamMatch);
+    $videoInfo = $videoStreamMatch[1] ?? '不明';
+
+    // オーディオストリーム情報 (Audio) を抽出
+    preg_match('/Stream.*Audio: (.*)/', $ffmpegInfo, $audioStreamMatch);
+    $audioInfo = $audioStreamMatch[1] ?? '不明';
+
+    // 情報を表示
+    echo "  - 動画の長さ: $duration\n";
+    echo "  - ビデオ情報: $videoInfo\n";
+    echo "  - オーディオ情報: $audioInfo\n";
+} else {
+    echo "動画情報の取得に失敗しました。\n";
+}
+
+exit;
