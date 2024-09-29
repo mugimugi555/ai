@@ -78,7 +78,8 @@ foreach ($files as $index => $file) {
 echo "\n";
 
 // 生成されたPNGから動画を作成（音声なし）の高画質設定
-$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -vf scale=3840:2160 -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
+//$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -vf scale=3840:2160 -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
+$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
 system($CMD);
 
 // input.mp4から音声を抽出して、指定された出力ファイルに追加する
