@@ -1,15 +1,29 @@
 #!/bin/bash
 
-# CUDAのチェック
-if ! command -v nvcc &> /dev/null; then
-    echo "CUDAがインストールされていません。CUDAをインストールしてください。"
-    exit 1
+# CUDAのインストール方法のヘルプ
+echo "CUDAがインストールされているか確認します..."
+
+if ! nvcc --version &>/dev/null; then
+    echo "CUDAがインストールされていません。"
+    echo "CUDAをインストールするには、以下のコマンドを実行してください。"
+    echo "1. 必要な依存関係をインストール: sudo apt update && sudo apt install -y build-essential"
+    echo "2. CUDA Toolkitをダウンロード: wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run"
+    echo "3. CUDAをインストール: sudo sh cuda_11.8.0_520.61.05_linux.run --silent --toolkit"
+    echo "4. 環境変数を設定: echo 'export PATH=/usr/local/cuda/bin:\$PATH' >> ~/.bashrc"
+    echo "5. 環境変数を適用: source ~/.bashrc"
+else
+    echo "CUDAが正常にインストールされています。"
 fi
 
-# ffmpegのチェック
-if ! command -v ffmpeg &> /dev/null; then
-    echo "ffmpegがインストールされていません。ffmpegをインストールしてください。"
-    exit 1
+# ffmpegのインストール方法のヘルプ
+echo "ffmpegがインストールされているか確認します..."
+
+if ! ffmpeg -version &>/dev/null; then
+    echo "ffmpegがインストールされていません。"
+    echo "ffmpegをインストールするには、以下のコマンドを実行してください。"
+    echo "sudo apt update && sudo apt install -y ffmpeg"
+else
+    echo "ffmpegが正常にインストールされています。"
 fi
 
 # コマンドライン引数から入力ファイルを取得
