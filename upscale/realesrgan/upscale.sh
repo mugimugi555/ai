@@ -32,34 +32,34 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-target_movie_file_name="$1"
+input_movie_file_name="$1"
 
 # 動画ファイル名から拡張子を取り除いて作業用ディレクトリ名を設定
-base_name=$(basename "$target_movie_file_name" .mp4)
-working_dir_target="${base_name}_target"
-working_dir_result="${base_name}_upscaled"
+base_name=$(basename "$input_movie_file_name" .mp4)
+working_dir_input="${base_name}_input"
+working_dir_upscaled="${base_name}_upscaled"
 
 # 出力ファイル名を指定 (元のファイル名に -upscaled を追加)
 output_movie_file_name="${base_name}-upscaled.mp4"
 
 # 作業用ディレクトリの作成と初期化
-mkdir -p "$working_dir_target"
-rm -f "$working_dir_target/*.png"
+mkdir -p "$working_dir_input"
+rm -f "$working_dir_input/*.png"
 
-mkdir -p "$working_dir_result"
-rm -f "$working_dir_result/*.png"
+mkdir -p "$working_dir_upscaled"
+rm -f "$working_dir_upscaled/*.png"
 
 # input.mp4からフレームをPNG形式で抽出
-ffmpeg -i "$target_movie_file_name" -vcodec png "$working_dir_target/%03d.png" > /dev/null 2>&1
+ffmpeg -i "$input_movie_file_name" -vcodec png "$working_dir_input/%03d.png" > /dev/null 2>&1
 
 # PNGファイルの枚数をカウント
-totalFiles=$(find "$working_dir_target" -type f -name '*.png' | wc -l)
+totalFiles=$(find "$working_dir_input" -type f -name '*.png' | wc -l)
 
 # 対象画像ファイル数を表示
 echo "対象画像ファイル数: $totalFiles"
 
 # 入力ファイルのフレームレートを取得
-frameRate=$(ffmpeg -i "$target_movie_file_name" 2>&1 | grep -oP '\d+(\.\d+)? fps' | awk '{print $1}')
+frameRate=$(ffmpeg -i "$input_movie_file_name" 2>&1 | grep -oP '\d+(\.\d+)? fps' | awk '{print $1}')
 
 # 入力フレームレートを表示
 echo "入力フレームレート: $frameRate"
@@ -69,10 +69,10 @@ processedFiles=0
 startTime=$(date +%s)
 
 # PNGファイルを取得
-files=("$working_dir_target"/*.png)
+files=("$working_dir_input"/*.png)
 
 for file in "${files[@]}"; do
-    outputFile="$working_dir_result/$(basename "$file")"
+    outputFile="$working_dir_upscaled/$(basename "$file")"
 
     # Real-ESRGANで1枚ずつアップスケール
     CMD="./realesrgan-ncnn-vulkan -i \"$file\" -o \"$outputFile\" -n realesrgan-x4plus -s 4 -f png"
@@ -99,10 +99,10 @@ done
 echo -e "\n"
 
 # 生成されたPNGから動画を作成（音声なし）の高画質設定
-ffmpeg -y -framerate "$frameRate" -i "$working_dir_result/%03d.png" -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4 > /dev/null 2>&1
+ffmpeg -y -framerate "$frameRate" -i "$working_dir_upscaled/%03d.png" -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4 > /dev/null 2>&1
 
 # input.mp4から音声を抽出して、指定された出力ファイルに追加する
-ffmpeg -i working_upscaled_none_audio.mp4 -i "$target_movie_file_name" -c copy -map 0:v:0 -map 1:a:0 -shortest -y "$output_movie_file_name" > /dev/null 2>&1
+ffmpeg -i working_upscaled_none_audio.mp4 -i "$input_movie_file_name" -c copy -map 0:v:0 -map 1:a:0 -shortest -y "$output_movie_file_name" > /dev/null 2>&1
 
 # 一時ファイルの削除
 rm -f working_upscaled_none_audio.mp4
