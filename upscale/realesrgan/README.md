@@ -1,10 +1,19 @@
 # RealSRのダウンロードとセットアップと実行
 
 ```bash
-wget https://github.com/nihui/realsr-ncnn-vulkan/releases/download/20220728/realsr-ncnn-vulkan-20220728-ubuntu.zip
-unzip realsr-ncnn-vulkan-20220728-ubuntu.zip
-cd realsr-ncnn-vulkan-20220728-ubuntu
 
+# see https://github.com/xinntao/Real-ESRGAN/releases
+
+wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-ubuntu.zip
+unzip realesrgan-ncnn-vulkan-20220424-ubuntu.zip
+cd realesrgan-ncnn-vulkan-20220424-ubuntu
+
+#
+wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth     -P models
+wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-wdn-x4v3.pth -P models
+wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth     -P models
+
+#
 wget https://raw.githubusercontent.com/mugimugi555/ai/refs/heads/main/upscale/realesrgan/upscale.sh
 wget https://raw.githubusercontent.com/mugimugi555/ai/refs/heads/main/upscale/realesrgan/test.mp4
 bash upscale.sh test.mp4
