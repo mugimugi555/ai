@@ -16,4 +16,5 @@ wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-g
 
 #
 wget https://raw.githubusercontent.com/mugimugi555/ai/refs/heads/main/upscale/realesrgan/upscale.sh
-bash upscale.sh onepiece_demo.mp4.mp4
+chmod +x upscale.sh
+./upscale.sh onepiece_demo.mp4
