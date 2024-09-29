@@ -56,6 +56,10 @@ $out = shell_exec( "ffmpeg -i {$target_movie_file_name} 2>&1" );
 preg_match( '/(\d+\.\d+|\d+)\s*fps/', $out, $match );
 $frameRate = $match[1];
 
+echo "＝＝指定された動画の情報＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝\n";
+show_move_info($target_movie_file_name);
+echo "＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝\n";
+
 // input.mp4からフレームをPNG形式で抽出
 echo "動画を静止画へと切り出します。\n";
 $CMD = "ffmpeg -i {$target_movie_file_name} -vcodec png {$working_dir_target}/%03d.png > /dev/null 2>&1";
@@ -67,13 +71,14 @@ ob_end_clean();
 $files = glob("{$working_dir_target}/*.png");
 $totalFiles = count($files);
 
-echo "対象の静止画が $totalFiles 枚です。\n";
+echo "対象の静止画は $totalFiles 枚です。\n";
 // Real-ESRGANで画像のアップスケールを実行し、進捗を表示
 $processedFiles = 0;
 $startTime = time(); // 処理開始時間を記録
 
 echo "静止画群をアップスケールします。\n";
 foreach ($files as $index => $file) {
+
     // 出力ファイル名を指定 (元のファイル名をそのまま使用)
     $outputFile = "{$working_dir_result}/" . basename($file); // 元のファイル名を使用
 
@@ -102,6 +107,7 @@ foreach ($files as $index => $file) {
     // 進捗と残り時間を同じ行に表示
     echo sprintf("\rアップスケール状況: [%s] %d/%d (%.2f%%) 残り時間: %02d分%02d秒", $progressBar, $processedFiles, $totalFiles, $progress, $remainingMinutes, $remainingSeconds);
     flush();
+
 }
 
 // 最後に改行を追加
@@ -123,29 +129,41 @@ echo "動画のアップスケールが終了しました。\n";
 
 // 出力された動画の情報を取得
 echo "＝＝出力された動画の情報＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝\n";
-$ffmpegInfo = shell_exec("ffmpeg -i {$output_movie_file_name} 2>&1");
+show_move_info($output_movie_file_name);
 
-// 動画情報から必要な部分を抽出して整形
-if ($ffmpegInfo) {
-    // 動画の長さ (Duration) を抽出
-    preg_match('/Duration: ([\d:.]+)/', $ffmpegInfo, $durationMatch);
-    $duration = $durationMatch[1] ?? '不明';
+function show_move_info( $movie_file_name ){
 
-    // ビデオストリーム情報 (Video) を抽出
-    preg_match('/Stream.*Video: (.*)/', $ffmpegInfo, $videoStreamMatch);
-    $videoInfo = $videoStreamMatch[1] ?? '不明';
+    $ffmpegInfo = shell_exec("ffmpeg -i {$movie_file_name} 2>&1");
 
-    // オーディオストリーム情報 (Audio) を抽出
-    preg_match('/Stream.*Audio: (.*)/', $ffmpegInfo, $audioStreamMatch);
-    $audioInfo = $audioStreamMatch[1] ?? '不明';
+    // 動画情報から必要な部分を抽出して整形
+    if ($ffmpegInfo) {
 
-    // 情報を表示
-    echo "[ファイル名] $output_movie_file_name\n";
-    echo "[動画の長さ] $duration\n";
-    echo "[ビデオ情報] $videoInfo\n";
-    echo "[オーディオ情報] $audioInfo\n";
-} else {
-    echo "動画情報の取得に失敗しました。\n";
+        // 動画の長さ (Duration) を抽出
+        preg_match('/Duration: ([\d:.]+)/', $ffmpegInfo, $durationMatch);
+        $duration = $durationMatch[1] ?? '不明';
+
+        // ビデオストリーム情報 (Video) を抽出
+        preg_match('/Stream.*Video: (.*)/', $ffmpegInfo, $videoStreamMatch);
+        $videoInfo = $videoStreamMatch[1] ?? '不明';
+
+        // オーディオストリーム情報 (Audio) を抽出
+        preg_match('/Stream.*Audio: (.*)/', $ffmpegInfo, $audioStreamMatch);
+        $audioInfo = $audioStreamMatch[1] ?? '不明';
+
+        // フレームレート情報を抽出
+        preg_match( '/(\d+\.\d+|\d+)\s*fps/', $ffmpegInfo, $frameRateMatch );
+        $frameRate = $frameRateMatch[1];
+
+        // 情報を表示
+        echo "[ファイル名] $movie_file_name\n";
+        echo "[動画の長さ] $duration\n";
+        echo "[ビデオ情報] $videoInfo\n";
+        echo "[フレームレート] $frameRate\n";
+        echo "[オーディオ情報] $audioInfo\n";
+    } else {
+        echo "動画情報の取得に失敗しました。\n";
+    }
+
 }
 
 exit;
