@@ -51,24 +51,28 @@ $CMD = "rm -f {$working_dir_target}/*.png";
 $CMD = "rm -f {$working_dir_result}/*.png";
 @system($CMD);
 
+// 入力ファイルのフレームレートを取得
+$out = shell_exec( "ffmpeg -i {$target_movie_file_name} 2>&1" );
+preg_match( '/(\d+\.\d+|\d+)\s*fps/', $out, $match );
+$frameRate = $match[1];
+
 // input.mp4からフレームをPNG形式で抽出
+echo "動画を静止画へと切り出します。\n";
 $CMD = "ffmpeg -i {$target_movie_file_name} -vcodec png {$working_dir_target}/%03d.png > /dev/null 2>&1";
 ob_start();
 system($CMD);
 ob_end_clean();
 
-// 入力ファイルのフレームレートを取得
-$CMD = "ffmpeg -i {$target_movie_file_name} 2>&1 | grep 'fps' | awk '{print $2}' | sed 's/[^0-9]//g'";
-$frameRate = (int)shell_exec($CMD);
-
 // PNGファイルの枚数をカウント
 $files = glob("{$working_dir_target}/*.png");
 $totalFiles = count($files);
 
+echo "対象の静止画が $totalFiles 枚です。\n";
 // Real-ESRGANで画像のアップスケールを実行し、進捗を表示
 $processedFiles = 0;
 $startTime = time(); // 処理開始時間を記録
 
+echo "静止画群をアップスケールします。\n";
 foreach ($files as $index => $file) {
     // 出力ファイル名を指定 (元のファイル名をそのまま使用)
     $outputFile = "{$working_dir_result}/" . basename($file); // 元のファイル名を使用
@@ -96,7 +100,7 @@ foreach ($files as $index => $file) {
     $remainingSeconds = $remainingTime % 60;
 
     // 進捗と残り時間を同じ行に表示
-    echo sprintf("\r進行状況: [%s] %d/%d (%.2f%%) 残り時間: %02d分%02d秒", $progressBar, $processedFiles, $totalFiles, $progress, $remainingMinutes, $remainingSeconds);
+    echo sprintf("\rアップスケール状況: [%s] %d/%d (%.2f%%) 残り時間: %02d分%02d秒", $progressBar, $processedFiles, $totalFiles, $progress, $remainingMinutes, $remainingSeconds);
     flush();
 }
 
@@ -104,18 +108,21 @@ foreach ($files as $index => $file) {
 echo "\n";
 
 // 生成されたPNGから動画を作成（音声なし）の高画質設定
-$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4";
+echo "静止画から動画を作成します。\n";
+$CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -c:v hevc_nvenc -preset p7 -rc vbr -cq 17 -b:v 20M -maxrate 30M -bufsize 40M -pix_fmt yuv444p working_upscaled_none_audio.mp4 > /dev/null 2>&1";
 system($CMD);
 
 // input.mp4から音声を抽出して、指定された出力ファイルに追加する
-$CMD = "ffmpeg -i working_upscaled_none_audio.mp4 -i {$target_movie_file_name} -c copy -map 0:v:0 -map 1:a:0 -shortest -y {$output_movie_file_name}";
+echo "音声をオリジナルからコピーして動画を生成します。\n";
+$CMD = "ffmpeg -i working_upscaled_none_audio.mp4 -i {$target_movie_file_name} -c copy -map 0:v:0 -map 1:a:0 -shortest -y {$output_movie_file_name} > /dev/null 2>&1";
 system($CMD);
 
 // 一時ファイルの削除
 @unlink("working_upscaled_none_audio.mp4");
+echo "動画のアップスケールが終了しました。\n";
 
 // 出力された動画の情報を取得
-echo "出力された動画の情報:\n";
+echo "＝＝出力された動画の情報＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝\n";
 $ffmpegInfo = shell_exec("ffmpeg -i {$output_movie_file_name} 2>&1");
 
 // 動画情報から必要な部分を抽出して整形
@@ -133,9 +140,10 @@ if ($ffmpegInfo) {
     $audioInfo = $audioStreamMatch[1] ?? '不明';
 
     // 情報を表示
-    echo "  - 動画の長さ: $duration\n";
-    echo "  - ビデオ情報: $videoInfo\n";
-    echo "  - オーディオ情報: $audioInfo\n";
+    echo "[ファイル名] $output_movie_file_name\n";
+    echo "[動画の長さ] $duration\n";
+    echo "[ビデオ情報] $videoInfo\n";
+    echo "[オーディオ情報] $audioInfo\n";
 } else {
     echo "動画情報の取得に失敗しました。\n";
 }
