@@ -106,3 +106,9 @@ ffmpeg -i working_upscaled_none_audio.mp4 -i "$input_movie_file_name" -c copy -m
 
 # 一時ファイルの削除
 rm -f working_upscaled_none_audio.mp4
+
+# 最終的な出力動画の情報を表示
+echo "出力された動画の情報:"
+ffmpeg -i "$output_movie_file_name" 2>&1 | grep -E "Duration:|Stream.*Video:|Stream.*Audio:"
+
+exit 0
