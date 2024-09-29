@@ -5,7 +5,7 @@
 # see https://github.com/xinntao/Real-ESRGAN/releases
 
 wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-ubuntu.zip
-unzip realesrgan-ncnn-vulkan-20220424-ubuntu.zip
+unzip realesrgan-ncnn-vulkan-20220424-ubuntu.zip -d realesrgan-ncnn-vulkan-20220424-ubuntu
 cd realesrgan-ncnn-vulkan-20220424-ubuntu
 
 #
