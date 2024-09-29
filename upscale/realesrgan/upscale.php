@@ -83,7 +83,7 @@ $CMD = "ffmpeg -y -framerate {$frameRate} -i {$working_dir_result}/%03d.png -c:v
 system($CMD);
 
 // input.mp4から音声を抽出して、指定された出力ファイルに追加する
-$CMD = "ffmpeg -i working_upscaled_none_audio.mp4.mp4.mp4 -i {$target_movie_file_name} -c copy -map 0:v:0 -map 1:a:0 -shortest -y {$output_movie_file_name}";
+$CMD = "ffmpeg -i working_upscaled_none_audio.mp4 -i {$target_movie_file_name} -c copy -map 0:v:0 -map 1:a:0 -shortest -y {$output_movie_file_name}";
 system($CMD);
 
 // 一時ファイルの削除
